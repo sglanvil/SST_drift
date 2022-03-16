@@ -1,8 +1,11 @@
 % June 15, 2021
 clear; clc; close all;
 
-% /glade/work/sglanvil/CCR/meehl/concat_CESM1_FOSI.sh
-% /glade/work/sglanvil/CCR/meehl/concat_kirtman.sh
+% new: /glade/work/sglanvil/CCR/SST_drift
+% old: /glade/work/sglanvil/CCR/meehl
+
+% ncar last init = Nov 2017
+% kirtman last init = Nov 2018
 
 % files on cheyenne: 
 % /glade/work/sglanvil/CCR/meehl/kirtman
@@ -13,7 +16,7 @@ clear; clc; close all;
 % -------------------------- SPECIFY  --------------------------
 dateBegin=datetime('15/Nov/1985');
 dateEnd=datetime('15/Oct/2005');
-printName='drift_cesm1_e3sm_kirtmanFix';
+printName='drift_cesm1_e3sm_kirtmanFix_HadISST';
 
 % -------------------------- GENERAL SETUP --------------------------
 subpos1=[.06 .72 .20 .16; .06 .52 .20 .16; .06 .32 .20 .16; .06 .12 .20 .16];    
@@ -37,17 +40,47 @@ fil='/Users/sglanvil/Documents/CCR/hteng/data/T42.gw.nc';
 lon=ncread(fil,'lon');
 lat=ncread(fil,'lat');
 
-% -------------------------- OBSERVATIONS --------------------------
-load /Users/sglanvil/Documents/CCR/meehl/SST_monthly_HADISST2_1979to2010_data.mat
-t1=datetime('15/Jan/1979');
-t2=datetime('15/Dec/2010');
+% -------------------------- OBSERVATIONS OLD --------------------------
+% load /Users/sglanvil/Documents/CCR/meehl/SST_monthly_HADISST2_1979to2010_data.mat
+% t1=datetime('15/Jan/1979');
+% t2=datetime('15/Dec/2010');
+% timeOBS=t1:t2;
+% timeOBS=timeOBS(day(timeOBS)==15); % datetime monthly option
+% varMonthlyOBS=sstOBS;
+% varMonthlyOBS=varMonthlyOBS(:,:,find(timeOBS==dateBegin):find(timeOBS==dateEnd));
+% for iyear=1:size(varMonthlyOBS,3)/12
+%     varYearlyOBS(:,:,iyear)=nanmean(varMonthlyOBS(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
+% end
+
+% -------------------------- OBSERVATIONS NEW --------------------------
+fil='/Users/sglanvil/Documents/CCR/meehl/data/HadISST_sst.nc';
+lon0=ncread(fil,'longitude');
+lat0=ncread(fil,'latitude');
+lon0(lon0<0)=lon0(lon0<0)+360;
+raw=ncread(fil,'sst')+273; % --- from Celsius to Kelvin
+raw(raw<0)=NaN; % --- why are there NEGATIVE sst (Kelvin) values?!
+[lon0sorted,inx]=sort(lon0); % --- deal with some neg lon issues
+raw=raw(inx,:,:); % --- deal with some neg lon issues
+lon0=lon0(inx); % --- deal with some neg lon issues
+t1=datetime('15/Jan/1870');
+t2=datetime('15/Dec/2021');
 timeOBS=t1:t2;
 timeOBS=timeOBS(day(timeOBS)==15); % datetime monthly option
-varMonthlyOBS=sstOBS;
+[x,y]=meshgrid(lon0,lat0);
+[xNew,yNew]=meshgrid(lon,lat);
+clear rawNew
+for itime=1:size(raw,3)
+    rawNew(:,:,itime)=interp2(x,y,squeeze(raw(:,:,itime))',...
+        xNew,yNew,'linear',1)'; 
+end
+varMonthlyOBS=rawNew;
 varMonthlyOBS=varMonthlyOBS(:,:,find(timeOBS==dateBegin):find(timeOBS==dateEnd));
+clear varYearlyOBS
 for iyear=1:size(varMonthlyOBS,3)/12
     varYearlyOBS(:,:,iyear)=nanmean(varMonthlyOBS(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
 end
+
+
 
 figure;
 % -------------------------- FORECAST --------------------------
@@ -56,21 +89,22 @@ model={'cesm1_bruteforce','e3sm_bruteforce','cesm1_fosi','e3sm_fosi'};
 for imodel=1:4
     fil=sprintf('ts_%s_EM_ALL.nc',model{imodel});
     raw=ncread(fil,'TS');
-    raw=raw(:,:,1:60,:);
-    t1=datetime('15/Nov/1985');
-    t2=datetime('15/Oct/2005');
-    time=t1:t2;
-    time=time(day(time)==15); % datetime monthly option
+    raw=raw(:,:,1:60,:); % kirtman=60 vs ncar=122 (just choose first 60)
+    
+% initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
+% kirtman is adding inits as we go (maybe up to 2018)
+% ncar only has through 2017
+
     lon0=ncread(fil,'lon');
     lat0=ncread(fil,'lat');
     [x,y]=meshgrid(lon0,lat0);
     [xNew,yNew]=meshgrid(lon,lat);
-    for init=1:4
+    for init=1:size(raw,4) % use as many inits as you can
         for itime=1:size(raw,3)
             varMonthly(:,:,itime,init)=interp2(x,y,squeeze(raw(:,:,itime,init))',...
                 xNew,yNew,'linear',1)'; 
         end
-        for iyear=1:size(varMonthly,3)/12
+        for iyear=1:size(raw,3)/12
             varYearly(:,:,iyear,init)=nanmean(varMonthly(:,:,...
                 (iyear-1)*12+1:(iyear-1)*12+12,init),3);
         end
@@ -125,7 +159,7 @@ end
 sgtitle('Ensemble Mean Forecast - Observations (1985-2005, 4 initializations)');
 cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
-% print(printName,'-r300','-dpng');
+print(printName,'-r300','-dpng');
 
 
 
