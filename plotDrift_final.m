@@ -4,6 +4,7 @@ clear; clc; close all;
 % new: /glade/work/sglanvil/CCR/SST_drift
 % old: /glade/work/sglanvil/CCR/meehl
 
+% initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
 % ncar last init = Nov 2017
 % kirtman last init = Nov 2018
 
@@ -15,7 +16,11 @@ clear; clc; close all;
 
 % -------------------------- SPECIFY  --------------------------
 dateBegin=datetime('15/Nov/1985');
-dateEnd=datetime('15/Oct/2005');
+dateEnd=datetime('15/Oct/2020');
+monthALL=dateBegin:dateEnd;
+monthALL=monthALL(day(monthALL)==15); % datetime monthly option
+yearALL=unique(year(monthALL)); % datetime yearly option
+yearALL(end)=[]; % remove that last year
 printName='drift_cesm1_e3sm_kirtmanFix_HadISST';
 
 % -------------------------- GENERAL SETUP --------------------------
@@ -58,24 +63,22 @@ lon0=ncread(fil,'longitude');
 lat0=ncread(fil,'latitude');
 lon0(lon0<0)=lon0(lon0<0)+360;
 raw=ncread(fil,'sst')+273; % --- from Celsius to Kelvin
-raw(raw<0)=NaN; % --- why are there NEGATIVE sst (Kelvin) values?!
+raw(raw<0)=NaN; % --- remove negative values (probably ice flags)
 [lon0sorted,inx]=sort(lon0); % --- deal with some neg lon issues
 raw=raw(inx,:,:); % --- deal with some neg lon issues
 lon0=lon0(inx); % --- deal with some neg lon issues
 t1=datetime('15/Jan/1870');
 t2=datetime('15/Dec/2021');
-timeOBS=t1:t2;
-timeOBS=timeOBS(day(timeOBS)==15); % datetime monthly option
+monthOBS=t1:t2;
+monthOBS=monthOBS(day(monthOBS)==15); % datetime monthly option
+yearOBS=unique(year(monthOBS));
 [x,y]=meshgrid(lon0,lat0);
 [xNew,yNew]=meshgrid(lon,lat);
-clear rawNew
+clear varMonthlyOBS varYearlyOBS
 for itime=1:size(raw,3)
-    rawNew(:,:,itime)=interp2(x,y,squeeze(raw(:,:,itime))',...
+    varMonthlyOBS(:,:,itime)=interp2(x,y,squeeze(raw(:,:,itime))',...
         xNew,yNew,'linear',1)'; 
 end
-varMonthlyOBS=rawNew;
-varMonthlyOBS=varMonthlyOBS(:,:,find(timeOBS==dateBegin):find(timeOBS==dateEnd));
-clear varYearlyOBS
 for iyear=1:size(varMonthlyOBS,3)/12
     varYearlyOBS(:,:,iyear)=nanmean(varMonthlyOBS(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
 end
@@ -87,19 +90,20 @@ figure;
 modelTitle={'CESM1 bruteforce','E3SM bruteforce','CESM1 FOSI','E3SM FOSI'};
 model={'cesm1_bruteforce','e3sm_bruteforce','cesm1_fosi','e3sm_fosi'};
 for imodel=1:4
-    fil=sprintf('ts_%s_EM_ALL.nc',model{imodel});
+    % ----------------------- WARNING (new directory for new data)
+    fil=sprintf('SST_drift_data/ts_%s_EM_ALL.nc',model{imodel});
+%     fil=sprintf('ts_%s_EM_ALL.nc',model{imodel});
     raw=ncread(fil,'TS');
-    raw=raw(:,:,1:60,:); % kirtman=60 vs ncar=122 (just choose first 60)
-    
-% initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
-% kirtman is adding inits as we go (maybe up to 2018)
-% ncar only has through 2017
+    raw=raw(:,:,1:60,:); % kirtman=60 vs ncar=122 (so just choose first 60)
 
+    size(raw)
+    
     lon0=ncread(fil,'lon');
     lat0=ncread(fil,'lat');
     [x,y]=meshgrid(lon0,lat0);
     [xNew,yNew]=meshgrid(lon,lat);
-    for init=1:size(raw,4) % use as many inits as you can
+    clear varMonthly varYearly
+    for init=1:7 % ---------------------- WARNING: 1:7 only, not size(raw,4)
         for itime=1:size(raw,3)
             varMonthly(:,:,itime,init)=interp2(x,y,squeeze(raw(:,:,itime,init))',...
                 xNew,yNew,'linear',1)'; 
@@ -110,11 +114,21 @@ for imodel=1:4
         end
     end
     
-    % -------------------------- DIFFERENCE --------------------------
-    diff_month1=nanmean(varMonthly(:,:,1,:),4)-nanmean(varMonthlyOBS(:,:,1:5*12:end),3);
-    diff_year1=nanmean(varYearly(:,:,1,:),4)-nanmean(varYearlyOBS(:,:,1:5:end),3);
-    diff_year3=nanmean(varYearly(:,:,3,:),4)-nanmean(varYearlyOBS(:,:,3:5:end),3);
-    diff_year5=nanmean(varYearly(:,:,5,:),4)-nanmean(varYearlyOBS(:,:,5:5:end),3);
+    initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
+    initExist=initAll(1:7); % --------------------- WARNING: 1:7 only
+    clear inx_month1 inx_year1 inx_year3 inx_year5
+    for i=1:length(initExist)
+        inx_month1(i)=find(monthOBS==datetime(sprintf('15-Nov-%.4d',initExist(i))));
+        inx_year1(i)=find(yearOBS==initExist(i)+1);
+        inx_year3(i)=find(yearOBS==initExist(i)+3);
+        inx_year5(i)=find(yearOBS==initExist(i)+5);
+    end
+    
+    % -------------------------- DIFFERENCE --------------------------    
+    diff_month1=nanmean(varMonthly(:,:,1,:),4)-nanmean(varMonthlyOBS(:,:,inx_month1),3);
+    diff_year1=nanmean(varYearly(:,:,1,:),4)-nanmean(varYearlyOBS(:,:,inx_year1),3);
+    diff_year3=nanmean(varYearly(:,:,3,:),4)-nanmean(varYearlyOBS(:,:,inx_year3),3);
+    diff_year5=nanmean(varYearly(:,:,5,:),4)-nanmean(varYearlyOBS(:,:,inx_year5),3);
 
     % -------------------------- PLOT --------------------------
     typeTitle={'month 1','year 1','year 3','year 5'};  
@@ -156,7 +170,7 @@ for imodel=1:4
         end
     end
 end
-sgtitle('Ensemble Mean Forecast - Observations (1985-2005, 4 initializations)');
+sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015)');
 cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
