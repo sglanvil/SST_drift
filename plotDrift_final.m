@@ -1,14 +1,26 @@
 % June 15, 2021
 clear; clc; close all;
 
-% new: /glade/work/sglanvil/CCR/SST_drift
-% old: /glade/work/sglanvil/CCR/meehl
+% NEW: /glade/work/sglanvil/CCR/SST_drift
+% OLD: /glade/work/sglanvil/CCR/meehl
 
 % initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
 % ncar last init = Nov 2017
 % kirtman last init = Nov 2018
 
-% files on cheyenne: 
+% 1985 = 13 (5 cesm brute, 5 e3sm brute, 3 e3sm fosi)
+% 1990 = 13
+% 1995 = 13
+% 2000 = 13 
+% 
+% 2005 = 11 (5 cesm brute, 3 e3sm brute, 3 e3sm fosi)
+% 2010 = 11
+% 2015 = 11
+% 2016 = 11
+% 2017 = 11
+% 2018 = 11
+
+% OLD STUFF:
 % /glade/work/sglanvil/CCR/meehl/kirtman
 % /glade/work/sglanvil/CCR/meehl/DPLE_CESM1_FOSI/kirtmanYears
 % CESM1 FOSI (DPLE) originally called: /glade/work/sglanvil/CCR/meehl/DPLE_CESM1_FOSI/b.e11.BDP.f09_g16.5YEAR-11.EM.cam.h0.TS.198511-201012.nc
@@ -91,8 +103,9 @@ modelTitle={'CESM1 bruteforce','E3SM bruteforce','CESM1 FOSI','E3SM FOSI'};
 model={'cesm1_bruteforce','e3sm_bruteforce','cesm1_fosi','e3sm_fosi'};
 for imodel=1:4
     % ----------------------- WARNING (new directory for new data)
+    % download data from glade: /glade/work/sglanvil/CCR/SST_drift/OTHERS/*EM_ALL.nc
     fil=sprintf('SST_drift_data/ts_%s_EM_ALL.nc',model{imodel});
-%     fil=sprintf('ts_%s_EM_ALL.nc',model{imodel});
+    % fil=sprintf('ts_%s_EM_ALL.nc',model{imodel});
     raw=ncread(fil,'TS');
     raw=raw(:,:,1:60,:); % kirtman=60 vs ncar=122 (so just choose first 60)
 
@@ -103,7 +116,7 @@ for imodel=1:4
     [x,y]=meshgrid(lon0,lat0);
     [xNew,yNew]=meshgrid(lon,lat);
     clear varMonthly varYearly
-    for init=1:7 % ---------------------- WARNING: 1:7 only, not size(raw,4)
+    for init=1:8 % ---------------------- WARNING: choose or do size(raw,4)
         for itime=1:size(raw,3)
             varMonthly(:,:,itime,init)=interp2(x,y,squeeze(raw(:,:,itime,init))',...
                 xNew,yNew,'linear',1)'; 
@@ -115,7 +128,7 @@ for imodel=1:4
     end
     
     initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
-    initExist=initAll(1:7); % --------------------- WARNING: 1:7 only
+    initExist=initAll(1:8); % --------------------- WARNING: choose
     clear inx_month1 inx_year1 inx_year3 inx_year5
     for i=1:length(initExist)
         inx_month1(i)=find(monthOBS==datetime(sprintf('15-Nov-%.4d',initExist(i))));
@@ -170,7 +183,7 @@ for imodel=1:4
         end
     end
 end
-sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015)');
+sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015,2016)');
 cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
