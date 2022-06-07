@@ -15,6 +15,18 @@ CESM1 BRUTE | E3SM BRUTE | E3SM FOSI
 ```
 
 ```
+CESM1LE (missing member 001)
+/glade/campaign/cesm/collections/cesmLE/CESM-CAM5-BGC-LE/atm/proc/tseries/monthly/TS
+b.e11.B20TRC5CNBDRD.f09_g16.0[02-34].cam.h0.TS.192001-200512.nc
+```
+
+```
+E3SMv1HIST (missing member 2)
+/glade/campaign/cgd/ccr/E3SMv1-LE/FV_regridded/
+any files without "test" or "ssp"
+```
+
+```
 new: /glade/work/sglanvil/CCR/SST_drift
 old: /glade/work/sglanvil/CCR/meehl
 
