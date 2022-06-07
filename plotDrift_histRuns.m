@@ -56,7 +56,7 @@ fileMODlist={'b.e11.B20TRC5CNBDRD.f09_g16.EM.cam.h0.TS.192001-200512.nc',...
     'LE_ens.FV_oECv3_ICG.EM.cam.h0.TS.185001-201511.nc'};
 t1list={'15/Jan/1920','15/Jan/1850'};
 t2list={'15/Dec/2005','15/Nov/2015'};
-initEnd=[4 5];
+initEnd=[4 5]; % ---------------------- this is the longest possible length (see "initAll" and "initExist")
 for iMOD=1:2
     fileMOD=sprintf('SST_drift_data/%s',fileMODlist{iMOD});
     raw=ncread(fileMOD,'TS');
@@ -147,4 +147,4 @@ cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize'
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
 
-                 
+    
