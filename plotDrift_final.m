@@ -5,14 +5,14 @@ clear; clc; close all;
 % OLD: /glade/work/sglanvil/CCR/meehl
 
 % initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
-% ncar last init = Nov 2017
-% kirtman last init = Nov 2018
+% ncar last init = Nov 2017 (time=122)
+% kirtman last init = Nov 2018 (time=60)
 
-% 1985 = 13 (5 cesm brute, 5 e3sm brute, 3 e3sm fosi)
-% 1990 = 13
-% 1995 = 13
-% 2000 = 13 
-% 
+% 1985 = 15 (5 cesm brute, 5 e3sm brute, 5 e3sm fosi)
+% 1990 = 15
+% 1995 = 15
+% 2000 = 15 
+% --------------------------------------------------------------
 % 2005 = 11 (5 cesm brute, 3 e3sm brute, 3 e3sm fosi)
 % 2010 = 11
 % 2015 = 11
@@ -33,7 +33,7 @@ monthALL=dateBegin:dateEnd;
 monthALL=monthALL(day(monthALL)==15); % datetime monthly option
 yearALL=unique(year(monthALL)); % datetime yearly option
 yearALL(end)=[]; % remove that last year
-printName='drift_cesm1_e3sm_kirtmanFix_HadISST';
+printName='drift_cesm1_e3sm_kirtmanFix_HadISST_NEW';
 
 % -------------------------- GENERAL SETUP --------------------------
 subpos1=[.06 .72 .20 .16; .06 .52 .20 .16; .06 .32 .20 .16; .06 .12 .20 .16];    
@@ -148,9 +148,10 @@ for imodel=1:4
     type={'month1','year1','year3','year5'};  
     for itype=1:4
         diff=eval(sprintf('diff_%s',type{itype}));
+        diff_save{itype,imodel}=diff; % -------------------- SAVE
         diff(land>0)=NaN;
         diff(diff<-3)=-3;
-        
+               
         rmse=sqrt(nanmean((diff).^2,3));
 
         diff_60Sto60N=(rmse(:,lat>-60 & lat<60));
@@ -188,6 +189,7 @@ cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize'
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
 
+save('diffOut_cesm1_e3sm.mat','diff_save','lon','lat','land','lonCoast','latCoast');
 
 
 
