@@ -1,7 +1,7 @@
 % June 7, 2022
 
 clear; clc; close all
-printName='drift_histRuns_HadISST';
+printName='drift_histRuns_HadISST_NEW';
 
 % -------------------------- GENERAL SETUP --------------------------
 subpos1=[.30 .72 .20 .16; .30 .52 .20 .16; .30 .32 .20 .16; .30 .12 .20 .16];    
@@ -51,55 +51,59 @@ end
 
 figure
 % -------------------------- FORECAST --------------------------
-titleMODlist={'CESM1LE','E3SMv1HIST'};
-fileMODlist={'b.e11.B20TRC5CNBDRD.f09_g16.EM.cam.h0.TS.192001-200512.nc',...
-    'LE_ens.FV_oECv3_ICG.EM.cam.h0.TS.185001-201511.nc'};
+titleSIMlist={'CESM1LE','E3SMv1HIST'};
+fileSIMlist={'extend_hist_rcp85_CESM1LE_192001-208012.nc',...
+    'extend_hist_ssp370_E3SMv1_185001-210012.nc'};
+% fileSIMlist={'b.e11.B20TRC5CNBDRD.f09_g16.EM.cam.h0.TS.192001-200512.nc',...
+%     'LE_ens.FV_oECv3_ICG.EM.cam.h0.TS.185001-201511.nc'};
 t1list={'15/Jan/1920','15/Jan/1850'};
-t2list={'15/Dec/2005','15/Nov/2015'};
-initEnd=[4 5]; % ---------------------- this is the longest possible length (see "initAll" and "initExist")
-for iMOD=1:2
-    fileMOD=sprintf('SST_drift_data/%s',fileMODlist{iMOD});
-    raw=ncread(fileMOD,'TS');
-    lon0=ncread(fileMOD,'lon');
-    lat0=ncread(fileMOD,'lat');
-    t1=datetime(t1list{iMOD});
-    t2=datetime(t2list{iMOD});
-    monthMOD=t1:t2;
-    monthMOD=monthMOD(day(monthMOD)==15); % datetime monthly option
-    yearMOD=unique(year(monthMOD));
+t2list={'15/Dec/2080','15/Dec/2100'};
+% t2list={'15/Dec/2005','15/Nov/2015'};
+initEnd=[8 8]; % ---------------------- can only go through 2016 (see "initAll")
+% initEnd=[4 5]; % ---------------------- this is the longest possible length (see "initExist" and "initAll")
+for imodel=1:2
+    fileSIM=sprintf('SST_drift_data/%s',fileSIMlist{imodel});
+    raw=ncread(fileSIM,'TS');
+    lon0=ncread(fileSIM,'lon');
+    lat0=ncread(fileSIM,'lat');
+    t1=datetime(t1list{imodel});
+    t2=datetime(t2list{imodel});
+    monthSIM=t1:t2;
+    monthSIM=monthSIM(day(monthSIM)==15); % datetime monthly option
+    yearSIM=unique(year(monthSIM));
     [x,y]=meshgrid(lon0,lat0);
     [xNew,yNew]=meshgrid(lon,lat);
-    clear varMonthlyMOD varYearlyMOD
+    clear varMonthlySIM varYearlySIM
     for itime=1:size(raw,3)
-        varMonthlyMOD(:,:,itime)=interp2(x,y,squeeze(raw(:,:,itime))',...
+        varMonthlySIM(:,:,itime)=interp2(x,y,squeeze(raw(:,:,itime))',...
             xNew,yNew,'linear',1)'; 
     end
-    for iyear=1:size(varMonthlyMOD,3)/12
-        varYearlyMOD(:,:,iyear)=nanmean(varMonthlyMOD(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
+    for iyear=1:size(varMonthlySIM,3)/12
+        varYearlySIM(:,:,iyear)=nanmean(varMonthlySIM(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
     end
 
     initAll=[1985 1990 1995 2000 2005 2010 2015 2016 2017];
-    initExist=initAll(1:initEnd(iMOD)); % ------------------------- WARNING
+    initExist=initAll(1:initEnd(imodel)); % ------------------------- WARNING
     clear inx_month1 inx_year1 inx_year3 inx_year5
     for i=1:length(initExist)
         inxOBS_month1(i)=find(monthOBS==datetime(sprintf('15-Nov-%.4d',initExist(i))));
         inxOBS_year1(i)=find(yearOBS==initExist(i)+1);
         inxOBS_year3(i)=find(yearOBS==initExist(i)+3);
         inxOBS_year5(i)=find(yearOBS==initExist(i)+5);
-        inxMOD_month1(i)=find(monthMOD==datetime(sprintf('15-Nov-%.4d',initExist(i))));
-        inxMOD_year1(i)=find(yearMOD==initExist(i)+1);
-        inxMOD_year3(i)=find(yearMOD==initExist(i)+3);
-        inxMOD_year5(i)=find(yearMOD==initExist(i)+5);    
+        inxSIM_month1(i)=find(monthSIM==datetime(sprintf('15-Nov-%.4d',initExist(i))));
+        inxSIM_year1(i)=find(yearSIM==initExist(i)+1);
+        inxSIM_year3(i)=find(yearSIM==initExist(i)+3);
+        inxSIM_year5(i)=find(yearSIM==initExist(i)+5);    
     end
     
     % -------------------------- DIFFERENCE --------------------------    
-    diff_month1=nanmean(varMonthlyMOD(:,:,inxMOD_month1),3)-...
+    diff_month1=nanmean(varMonthlySIM(:,:,inxSIM_month1),3)-...
         nanmean(varMonthlyOBS(:,:,inxOBS_month1),3);
-    diff_year1=nanmean(varYearlyMOD(:,:,inxMOD_year1),3)-...
+    diff_year1=nanmean(varYearlySIM(:,:,inxSIM_year1),3)-...
         nanmean(varYearlyOBS(:,:,inxOBS_year1),3);
-    diff_year3=nanmean(varYearlyMOD(:,:,inxMOD_year3),3)-...
+    diff_year3=nanmean(varYearlySIM(:,:,inxSIM_year3),3)-...
         nanmean(varYearlyOBS(:,:,inxOBS_year3),3);
-    diff_year5=nanmean(varYearlyMOD(:,:,inxMOD_year5),3)-...
+    diff_year5=nanmean(varYearlySIM(:,:,inxSIM_year5),3)-...
         nanmean(varYearlyOBS(:,:,inxOBS_year5),3);
 
     % -------------------------- PLOT --------------------------
@@ -107,6 +111,7 @@ for iMOD=1:2
     type={'month1','year1','year3','year5'};  
     for itype=1:4
         diff=eval(sprintf('diff_%s',type{itype}));
+        diff_save{itype,imodel}=diff; % -------------------- SAVE
         diff(land>0)=NaN;
         diff(diff<-3)=-3;
         
@@ -118,7 +123,7 @@ for iMOD=1:2
         diff_60Sto60N_cosine=squeeze(nansum(diffzm_60Sto60N.*cosd(lat_60Sto60N))./nansum(cosd(lat_60Sto60N))); 
         diff_avg=sprintf('%.2f',diff_60Sto60N_cosine);
                             
-        subplot('position',squeeze(subpos(itype,:,iMOD)))
+        subplot('position',squeeze(subpos(itype,:,imodel)))
         hold on; box on;
         rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
         contourf(lon,lat,diff',-3:0.25:3,'linestyle','none')
@@ -134,17 +139,17 @@ for iMOD=1:2
         text(0.03,0.90,diff_avg,'Units','normalized','fontsize',8,'fontweight','bold')
     
         set(gca,'fontsize',8);
-        if iMOD==1
+        if imodel==1
             ylabel(typeTitle{itype},'fontweight','bold','fontsize',10);
         end
         if itype==1
-            title(titleMODlist{iMOD},'fontsize',12);
+            title(titleSIMlist{imodel},'fontsize',12);
         end
     end
 end
-sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005)');
+sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015,2016)');
 cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
 
-    
+save('diffOut_histRuns.mat','diff_save','lon','lat','land','lonCoast','latCoast');
