@@ -5,10 +5,16 @@ function [forecast,obs,titleNames]=...
     % Input:
     % varYearly(lon,lat,lead,time)
     % varYearlyOBS(lon,lat,timeOBS)
-    % varyearlyCLIM(lon,lat,
+    % varyearlyCLIM(lon,lat,timeCLIM)
     % leadStart=3 (for example)
     % leadEnd=7 (for example)
     % leadMid=5 (for example)
+    
+    eqCheck=isequaln(varYearly,varYearlyCLIM);
+    if eqCheck==1
+        varYearlyCLIM=squeeze(nanmean(varYearly(:,:,leadStart:leadEnd,:),3));
+        timeCLIM=time;
+    end
 
     nlon=length(lon);
     nlat=length(lat);
