@@ -43,10 +43,8 @@ for imodel=1:4
         sgfun_driftMeehl(varYearly,varYearlyOBS,varYearlyCLIM,...
         time,timeOBS,timeCLIM,lon,lat,leadStart,leadEnd,leadMid);
 
-    anom_clim_model=forecast(:,:,:,4);
-    anom_clim_obs=obs(:,:,:,4);
-    xfinal=squeeze(anom_clim_obs);
-    yfinal=squeeze(anom_clim_model);
+    xfinal=squeeze(forecast(:,:,:,3));
+    yfinal=squeeze(obs(:,:,:,3));
     
     clear uncenteredR
     for itime=1:length(time)
@@ -67,12 +65,12 @@ for imodel=1:4
         'color',[plotColor(imodel,:) plotLineTrans],...
         'linestyle',plotLine{imodel},'linewidth',plotLineWidth);    
 end
-text(1997,0.6,'1985-2005, 4 initializations','fontsize',13);
+text(1962,0.9,'1985-2016, 8 initializations','fontsize',13);
 legend(h,{'CESM1 bruteforce','E3SM bruteforce','CESM1 FOSI','E3SM FOSI'},...
         'fontsize',13,'box','off')
 title('TS "anom\_model\_clim" Pattern Correlation (40S-70N, 100E-80W)');
 set(gca,'fontsize',15);
-axis([1960 2018 -0.6 1]);
+axis([1960 2018 -0.8 1]);
     
 set(gcf,'renderer','painters')
 % print(printName,'-r300','-dpng');
