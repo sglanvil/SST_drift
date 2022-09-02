@@ -68,31 +68,44 @@ name_LE{2}='CESM1LE';
 
 % -------------------------- FORECAST --------------------------
 modelList={'cesm1_fosi','cesm1_bruteforce','e3sm_fosi','e3sm_bruteforce'};
+memberList={'001','002','003','EM'};
 for imodel=1:4
-    fil=sprintf('/Users/sglanvil/Documents/CCR/meehl/data/SST_drift_data/ts_%s_EM_ALL.nc',modelList{imodel});
-    raw=ncread(fil,'TS');
-    raw=raw(:,:,3:60,1:8); % remove Nov and Dec
-    raw(:,:,59:60,:)=NaN; % add on some NaN months so you regular years
-    time=[1985 1990 1995 2000 2005 2010 2015 2016]; % through 2016 raw(..,1:8) for yr3-5 (yr5=2021)
-    lon0=ncread(fil,'lon');
-    lat0=ncread(fil,'lat');
-    [x,y]=meshgrid(lon0,lat0);
-    [xNew,yNew]=meshgrid(lon,lat);
-    for init=1:size(raw,4)
-        for itime=1:size(raw,3)
-            varMonthly(:,:,itime,init)=interp2(x,y,squeeze(raw(:,:,itime,init))',...
-                xNew,yNew,'linear',1)'; 
+    for imember=1:4
+        fil=sprintf('/Users/sglanvil/Documents/CCR/meehl/data/SST_drift_data/ts_%s_%s_ALL.nc',...
+            modelList{imodel},memberList{imember});
+        raw=ncread(fil,'TS');
+        raw=raw(:,:,3:60,1:8); % remove Nov and Dec
+        raw(:,:,59:60,:)=NaN; % add on some NaN months to get regular years
+        time=[1985 1990 1995 2000 2005 2010 2015 2016]; % through 2016 raw(..,1:8) for yr3-5 (yr5=2021)
+        lead=[1986 1987 1988 1989 1990; ...
+            1991 1992 1993 1994 1995; ...
+            1996 1997 1998 1999 2000; ...
+            2001 2002 2003 2004 2005; ...
+            2006 2007 2008 2009 2010; ...
+            2011 2012 2013 2014 2015; ...
+            2016 2017 2018 2019 2020; ...
+            2017 2018 2019 2020 2021];
+        lon0=ncread(fil,'lon');
+        lat0=ncread(fil,'lat');
+        [x,y]=meshgrid(lon0,lat0);
+        [xNew,yNew]=meshgrid(lon,lat);
+        for init=1:size(raw,4)
+            for itime=1:size(raw,3)
+                varMonthly(:,:,itime,init)=interp2(x,y,squeeze(raw(:,:,itime,init))',...
+                    xNew,yNew,'linear',1)'; 
+            end
+            for iyear=1:size(varMonthly,3)/12
+                varYearly(:,:,iyear,init)=nanmean(varMonthly(:,:,...
+                    (iyear-1)*12+1:(iyear-1)*12+12,init),3);
+            end    
         end
-        for iyear=1:size(varMonthly,3)/12
-            varYearly(:,:,iyear,init)=nanmean(varMonthly(:,:,...
-                (iyear-1)*12+1:(iyear-1)*12+12,init),3);
-        end    
+        land_rep=repmat(land,1,1,size(varYearly,3),size(varYearly,4));
+        varYearly(land_rep>0.5)=NaN; % THIS ACTUALLY MATTERS A TON
+        varYearly_FORECAST{imodel,imember}=varYearly;
+        time_FORECAST{imodel,imember}=time;
+        name_FORECAST{imodel,imember}=modelList{imodel};
+        lead_FORECAST{imodel,imember}=lead;
     end
-    land_rep=repmat(land,1,1,size(varYearly,3),size(varYearly,4));
-    varYearly(land_rep>0.5)=NaN; % THIS ACTUALLY MATTERS A TON
-    varYearly_FORECAST{imodel}=varYearly;
-    time_FORECAST{imodel}=time;
-    name_FORECAST{imodel}=modelList{imodel};
 end
 
 
@@ -128,5 +141,6 @@ varYearlyOBS(land_rep>0.5)=NaN; % THIS ACTUALLY MATTERS A TON
 save('varYearlyOut_cesm1_e3sm',...
     'varYearlyCLIM_LE','timeCLIM_LE','name_LE',...
     'varYearly_FORECAST','time_FORECAST','name_FORECAST',...
-    'varYearlyOBS','timeOBS','lon','lat');
+    'varYearlyOBS','timeOBS','lon','lat',...
+    'lead_FORECAST');
 
