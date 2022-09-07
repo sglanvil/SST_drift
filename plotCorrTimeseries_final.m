@@ -3,7 +3,7 @@ clear; clc; close all;
 
 % -------------------------- SPECIFY  --------------------------
 addpath /Users/sglanvil/Documents/CCR/meehl % acccess sgfun_driftMeehl
-printName='corrTimeseries_cesm1_e3sm_itself_15yr';
+printName='corrTimeseries_cesm1_e3sm_itself_clim';
 load('varYearlyOut_cesm1_e3sm.mat');
 leadStart=3;
 leadMid=4;
@@ -37,7 +37,8 @@ for imodel=1:4
             varYearlyCLIM=varYearlyCLIM_LE{2}; % E3SMv1
             timeCLIM=timeCLIM_LE{2};
         end
-
+        
+        % ------------ CHOOSE ------------
         varYearlyCLIM=varYearly;
         timeCLIM=time;
 
@@ -45,8 +46,9 @@ for imodel=1:4
             sgfun_driftMeehl(varYearly,varYearlyOBS,varYearlyCLIM,...
             time,timeOBS,timeCLIM,lead,lon,lat,leadStart,leadEnd,leadMid);
 
-        xfinal=squeeze(forecast(:,:,:,3));
-        yfinal=squeeze(obs(:,:,:,3));
+        % ------------ CHOOSE ------------
+        xfinal=squeeze(forecast(:,:,:,4));
+        yfinal=squeeze(obs(:,:,:,4));
 
         clear uncenteredR
         for itime=1:length(timeFinal)
@@ -73,7 +75,7 @@ text(1964,0.8,'8 inits','fontsize',14);
 text(1964,0.7,'3-5yr lead','fontsize',14);
 legend(h,{'CESM1 fosi','CESM1 bruteforce','E3SM FOSI','E3SM bruteforce'},...
         'fontsize',13,'box','off')
-title('TS "anom\_15yr" Pattern Correlation (40S-70N, 100E-80W)');
+title('TS "anom\_clim" Pattern Correlation (40S-70N, 100E-80W)');
 set(gca,'fontsize',15);
 axis([1960 2018 -0.8 1]);
     
