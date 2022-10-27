@@ -177,7 +177,3 @@ set(hc,'xtick',-1:0.2:1);
 set(gcf,'renderer','painters')
 
 print(printName,'-r300','-dpng');
-
-
-
-
