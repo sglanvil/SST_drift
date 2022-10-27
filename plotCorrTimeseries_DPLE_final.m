@@ -4,11 +4,11 @@ clear; clc; close all;
 cd('/glade/work/sglanvil/CCR/SST_drift/matlab_files/')
 
 % -------------------------- SPECIFY  --------------------------
-methodRef='LEadjusted'; % 'itself' or 'LE' or 'LEadjusted'
+methodRef='itself'; % 'itself' or 'LE' or 'LEadjusted'
 methodAnom='15yr'; % 'persist' or '15yr' or 'clim'
 leadStart=3;
-leadMid=5;
-leadEnd=7;
+leadMid=4;
+leadEnd=5;
 
 titleName=sprintf('TS "anom\\_%s" Correlation (40S-70N, 100E-80W)',methodAnom);
 printName=sprintf('corrTimeseries_TS_DPLE_%s_%s_%.1dto%.1dyr_final',methodRef,methodAnom,leadStart,leadEnd);
@@ -121,3 +121,7 @@ axis([1960 2018 -0.6 1]);
 set(gcf,'renderer','painters')
 
 print(printName,'-r300','-dpng');
+
+
+
+
