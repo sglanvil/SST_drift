@@ -33,7 +33,8 @@ monthALL=dateBegin:dateEnd;
 monthALL=monthALL(day(monthALL)==15); % datetime monthly option
 yearALL=unique(year(monthALL)); % datetime yearly option
 yearALL(end)=[]; % remove that last year
-printName='drift_cesm1_e3sm_kirtmanFix_HadISST_NEW';
+% printName='drift_cesm1_e3sm_kirtmanFix_HadISST_NEW';
+% printName='drift_cesm1_e3sm_kirtmanFix_HadISST_yr5fraction';
 
 % -------------------------- GENERAL SETUP --------------------------
 subpos1=[.06 .72 .20 .16; .06 .52 .20 .16; .06 .32 .20 .16; .06 .12 .20 .16];    
@@ -146,25 +147,33 @@ for imodel=1:4
     % -------------------------- PLOT --------------------------
     typeTitle={'month 1','year 1','year 3','year 5'};  
     type={'month1','year1','year3','year5'};  
-    for itype=1:4
+    for itype=1:4 % ----------------------------- Year5 Fraction? (yes or no)
         diff=eval(sprintf('diff_%s',type{itype}));
         diff_save{itype,imodel}=diff; % -------------------- SAVE
+
         diff(land>0)=NaN;
         diff(diff<-3)=-3;
+        diff_year5(land>0)=NaN;
+        diff_year5(diff_year5<-3)=-3;
+        
+%         diff=(diff./diff_year5)*100; % -------- Year5 Fraction? (yes or no)
                
         rmse=sqrt(nanmean((diff).^2,3));
-
         diff_60Sto60N=(rmse(:,lat>-60 & lat<60));
         lat_60Sto60N=lat(lat>-60 & lat<60);
         diffzm_60Sto60N=squeeze(nanmean(diff_60Sto60N,1))';
         diff_60Sto60N_cosine=squeeze(nansum(diffzm_60Sto60N.*cosd(lat_60Sto60N))./nansum(cosd(lat_60Sto60N))); 
         diff_avg=sprintf('%.2f',diff_60Sto60N_cosine);
-                            
+        
         subplot('position',squeeze(subpos(itype,:,imodel)))
         hold on; box on;
         rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
+        
+%         pcolor(lon,lat,diff'); shading flat;
+%         colormap(cat(1,[1 1 1],gradsmap2)); caxis([0 100]);
         contourf(lon,lat,diff',-3:0.25:3,'linestyle','none')
         colormap(gradsmap); caxis([-3 3]);
+
         plot(lonCoast,latCoast,'k','linewidth',1);
         set(gca,'ytick',-90:30:90,'yticklabel',{'90S' '60S' '30S' '0' '30N' '60N' '90N'});
         set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
@@ -184,17 +193,68 @@ for imodel=1:4
         end
     end
 end
-sgtitle('Forecast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015,2016)');
+sgtitle('Hindcast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015,2016)');
+% sgtitle('Fraction of Year 5 Drift (Hindcast-Obs)');
 cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
+% cb=colorbar('location','southoutside','position',[0.25 0.24 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
-print(printName,'-r300','-dpng');
+% print(printName,'-r300','-dpng');
 
 save('diffOut_cesm1_e3sm.mat','diff_save','lon','lat','land','lonCoast','latCoast');
 
+%% -------------------------- correlations for each model --------------------------
+% December 9, 2022
+clear; clc; close all;
+load('diffOut_cesm1_e3sm.mat'); % see: plotDrift_final.m: diff_save{itype,imodel}
+model={'cesm1_bruteforce','e3sm_bruteforce','cesm1_fosi','e3sm_fosi'};
+type={'month1','year1','year3','year5'};  
+for itype=1:4
+    [Rcesm,P]=corrcoef(diff_save{itype,1},diff_save{itype,4},'rows','pairwise');
+    [Re3sm,P]=corrcoef(diff_save{itype,3},diff_save{itype,2},'rows','pairwise');
+    [Rcesm(1,2) Re3sm(1,2)]
+end
+% Basically R=1 for both models, all leads
 
+%% -------------------------- check sign for each model --------------------------
+% December 9, 2022
+clear; clc; close all;
+printName='drift_cesm1_e3sm_kirtmanFix_HadISST_signTest';
 
-    
+subpos1=[.06 .72 .20 .16; .06 .52 .20 .16; .06 .32 .20 .16; .06 .12 .20 .16];    
+subpos2=[.30 .72 .20 .16; .30 .52 .20 .16; .30 .32 .20 .16; .30 .12 .20 .16];    
+subpos3=[.54 .72 .20 .16; .54 .52 .20 .16; .54 .32 .20 .16; .54 .12 .20 .16];  
+subpos4=[.78 .72 .20 .16; .78 .52 .20 .16; .78 .32 .20 .16; .78 .12 .20 .16];  
+subpos=cat(3,subpos1,subpos2,subpos3,subpos4);
 
+load('diffOut_cesm1_e3sm.mat'); % see: plotDrift_final.m: diff_save{itype,imodel}
+modelTitle={'CESM1','E3SM'};
+for imodel=1:2
+    typeTitle={'month 1','year 1','year 3','year 5'};  
+    for itype=1:4
+        A=sign(diff_save{itype,imodel});
+        B=sign(diff_save{itype,imodel+2});
+        C=A.*B;
+        subplot('position',squeeze(subpos(itype,:,imodel+1)))
+        hold on; box on;
+        rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
+        pcolor(lon,lat,C'); shading flat;
+        plot(lonCoast,latCoast,'k','linewidth',1);
+        set(gca,'ytick',-90:30:90,'yticklabel',{'90S' '60S' '30S' '0' '30N' '60N' '90N'});
+        set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
+        axis([0 360 -60 90]);        
+        set(gca,'fontsize',8);
+        if imodel==1
+            ylabel(typeTitle{itype},'fontweight','bold','fontsize',10);
+        end
+        if itype==1
+            title(modelTitle{imodel},'fontsize',12);
+        end
+    end
+end
+sgtitle('Bruteforce/FOSI Sign Test (Hindcast - Obs)');
+cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
+set(gcf,'renderer','painters')
+% print(printName,'-r300','-dpng');
     
 %% -------------------------- OBSERVATIONS --------------------------
 % fil='/Users/sglanvil/Documents/CCR/hteng/data/air.2m.mon.mean.nc';
