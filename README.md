@@ -48,3 +48,21 @@ kirtman last init = Nov 2018
 2017 = 11
 2018 = 11
 ```
+
+```
+## Info
+load('/Users/sglanvil/Documents/CCR/meehl/data/diffOut_histRuns')
+cesmLE=(diff_save{3,1}+diff_save{4,1})/2; % CESM, avg of year3 and year5
+e3smLE=(diff_save{3,2}+diff_save{4,2})/2; % E3SM, avg of year3 and year5
+
+load('/Users/sglanvil/Documents/CCR/meehl/data/diffOut_cesm1_e3sm.mat')
+cesmBRUTE=(diff_save{3,1}+diff_save{4,1})/2; % CESMb, avg of year3 and year5
+e3smBRUTE=(diff_save{3,2}+diff_save{4,2})/2; % E3SMb, avg of year3 and year5
+cesmFOSI=(diff_save{3,3}+diff_save{4,3})/2; % CESMf, avg of year3 and year5
+e3smFOSI=(diff_save{3,4}+diff_save{4,4})/2; % E3SMf, avg of year3 and year5
+
+cesmBRUTEadj=cesmLE-cesmBRUTE;
+cesmFOSIadj=cesmLE-cesmFOSI;
+e3smBRUTEadj=e3smLE-e3smBRUTE;
+e3smFOSIadj=e3smLE-e3smFOSI;
+```
