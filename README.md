@@ -49,8 +49,8 @@ kirtman last init = Nov 2018
 2018 = 11
 ```
 
+## month 1, year 1, year 3, and year 5 saved drift info...
 ```
-## Info
 load('/Users/sglanvil/Documents/CCR/meehl/data/diffOut_histRuns')
 cesmLE=(diff_save{3,1}+diff_save{4,1})/2; % CESM, avg of year3 and year5
 e3smLE=(diff_save{3,2}+diff_save{4,2})/2; % E3SM, avg of year3 and year5
