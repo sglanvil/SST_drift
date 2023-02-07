@@ -110,21 +110,12 @@ for imodel=1:4
     % -------------------------- PLOT --------------------------
     typeTitle={'month 1','year 1','year 3','year 5'};  
     type={'month1','year1','year3','year5'};  
-    for itype=1:4 % ----------------------------- Year5 Fraction? (yes or no)
+    for itype=1:4 
         diff=eval(sprintf('diff_%s',type{itype}));
-        diff(land>0)=NaN;
+        diff(land>0.5)=NaN;
         diff(diff<-3)=-3;
-        diff_year5(land>0)=NaN;
-        diff_year5(diff_year5<-3)=-3;
-        
-%         diff=(diff./diff_year5)*100; % -------- Year5 Fraction? (yes or no)
-%         diff(diff<0)=0;
-%         diff(diff>100)=100;
-%         diffzm_global=squeeze(mean(diff,1,'omitnan'))';
-%         diff_global_cosine=squeeze(sum(diffzm_global.*cosd(lat),'omitnan')./...
-%             sum(cosd(lat),'omitnan')); 
-%         diff_avg=sprintf('%.1f',diff_global_cosine);
-        
+        diff(diff>3)=3;
+
         rmse=sqrt(mean((diff).^2,3,'omitnan'));
         rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
         lat_60Sto60N=lat(lat>-60 & lat<60);
@@ -136,9 +127,7 @@ for imodel=1:4
         subplot('position',squeeze(subpos(itype,:,imodel)))
         hold on; box on;
         rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
-        
-%         pcolor(lon,lat,diff'); shading flat;
-%         colormap(cat(1,[1 1 1],gradsmap2)); caxis([0 100]);
+
         contourf(lon,lat,diff',-3:0.25:3,'linestyle','none')
         colormap(gradsmap); clim([-3 3]);
 
@@ -174,8 +163,9 @@ for iloop=1:2
         time=timeCLIM_LE{imodel};
         diff=mean(var(:,:,time>1984 & time<2018),3,'omitnan')-...
             mean(varOBS(:,:,timeOBS>1984 & timeOBS<2018),3,'omitnan');
-        diff(land>0)=NaN;
+        diff(land>0.5)=NaN;
         diff(diff<-3)=-3;
+        diff(diff>3)=3;
 
         rmse=sqrt(mean((diff).^2,3,'omitnan'));
         rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
