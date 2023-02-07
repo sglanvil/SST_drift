@@ -63,7 +63,7 @@ end
 
 figure;
 % -------------------------- FORECAST --------------------------
-modelTitle={'CESM1 Bruteforce','E3SM Bruteforce','CESM1 FOSI','E3SM FOSI'};
+modelTitle={'CESM1 Bruteforce','E3SMv1 Bruteforce','CESM1 FOSI','E3SMv1 FOSI'};
 model={'cesm1_bruteforce','e3sm_bruteforce','cesm1_fosi','e3sm_fosi'};
 for imodel=1:4
     % ----------------------- WARNING (new directory for new data)
