@@ -152,20 +152,21 @@ for imethodRef=1:2
                     c=sqrt(nansum(nansum((yMap.^2).*gw(lon>100 & lon<280,lat>-40 & lat<70))));
                     uncenteredR(init)=a/(b*c);    
                 end
-                plotLineTrans=0.25;
                 plotLineWidth=1;
+                plotLineTrans=0.25;
                 plotMarker='none';
                 if imember==4 % ensemble mean
-                    plotLineWidth=2;
+                    plotLineWidth=1.5;
                     plotLineTrans=1;
-                    plotMarker='*';
+                    plotMarker='o';
                 end
                 timeFinal(isnan(uncenteredR))=[];
                 uncenteredR(isnan(uncenteredR))=[];
                 
                 h(imodel)=plot(timeFinal,uncenteredR,'marker',plotMarker,...
                     'color',[plotColor(imodel,:) plotLineTrans],...
-                    'linestyle',plotLine{imodel},'linewidth',plotLineWidth);    
+                    'linestyle',plotLine{imodel},'linewidth',plotLineWidth,...
+                    'markerfacecolor',plotColor(imodel,:),'markersize',4);    
             end
         end
 %         text(1962,0.9,sprintf('%.1d-%.1dyr lead',leadStart,leadEnd),...
@@ -173,7 +174,7 @@ for imethodRef=1:2
 %         text(1962,0.7,sprintf('Ref Climo: %s',methodRef),...
 %             'fontsize',10,'fontweight','bold','horizontalalignment','left');
         if icounter==3
-            legend(h,{'CESM1 fosi','CESM1 bruteforce','E3SM FOSI','E3SM bruteforce'},...
+            legend(h,{'CESM1 FOSI','CESM1 bruteforce','E3SMv1 FOSI','E3SMv1 bruteforce'},...
                     'fontsize',8,'box','off','location','northwest')
         end
         set(gca,'ytick',-1:0.2:1,'xtick',1950:10:2030)
