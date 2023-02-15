@@ -200,4 +200,3 @@ colorbar('location','southoutside','position',[0.27 0.04 0.5 0.02],'fontsize',8)
 
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
-
