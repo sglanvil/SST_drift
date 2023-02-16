@@ -191,7 +191,7 @@ for iloop=1:2
             text(0.03,0.90,rmse_out,'Units','normalized','fontsize',8,'fontweight','bold');
             set(gca,'fontsize',8);
             if icounter==1
-                ylabel('Time Mean','fontweight','bold','fontsize',10);
+                ylabel('LE error','fontweight','bold','fontsize',10);
             end
             title(modelTitle{icounter},'fontsize',12);
     end
@@ -200,3 +200,4 @@ colorbar('location','southoutside','position',[0.27 0.04 0.5 0.02],'fontsize',8)
 
 set(gcf,'renderer','painters')
 print(printName,'-r300','-dpng');
+
