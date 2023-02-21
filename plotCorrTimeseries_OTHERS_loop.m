@@ -11,9 +11,9 @@ leadStart=3;
 leadMid=4;
 leadEnd=5;
 
-printName=sprintf('corrTimeseries_TS_cesm1_e3sm_multipanel_%.1dto%.1dyr',leadStart,leadEnd);
+printName=sprintf('corrTimeseries_TS_cesm1_e3sm_multipanel_%.1dto%.1dyr_allYears',leadStart,leadEnd);
 
-load('varYearlyOut_cesm1_e3sm_TS.mat');
+load('varYearlyOut_cesm1_e3sm_TS_2022.mat'); % --------- SPECIFY ---------
 gw=ncread('T42.gw.nc','gw');
 gw=repmat(gw',length(lon),1);
 
@@ -43,8 +43,8 @@ for imethodRef=1:2
         subplot(2,2,icounter)
         titleName=sprintf('(%s) Anom: %s, Ref Clim: %s',panelLetter{icounter},methodAnom,methodRef);
         hold on; box on; grid on;
-        plot([1960 2020],[0.53 0.53],'color',[.5 .5 .5],'linestyle','--');
-        plot([1960 2020],[0 0],'k');
+        plot([1960 2030],[0.53 0.53],'color',[.5 .5 .5],'linestyle','--');
+        plot([1960 2030],[0 0],'k');
         volcYear=[1963 1974 1982 1991 2006 2011];
         volcName={'Agung' 'Fuego' 'El Chichon' 'Pinatubo' 'Tavurvur' 'Nabro'};
         for ivolc=2:6
@@ -82,7 +82,7 @@ for imethodRef=1:2
                     LEadjust=e3smbrute;
                 end
                 
-                timeWant=1960:2020;
+                timeWant=1960:2022;
                 dataModel_final=NaN(length(lon),length(lat),length(timeWant));
                 dataLE_final=NaN(length(lon),length(lat),length(timeWant));
                 dataObs_final=NaN(length(lon),length(lat),length(timeWant));
@@ -155,10 +155,15 @@ for imethodRef=1:2
                 plotLineWidth=1;
                 plotLineTrans=0.25;
                 plotMarker='none';
+                faceColor='none';
                 if imember==4 % ensemble mean
                     plotLineWidth=1.5;
                     plotLineTrans=1;
                     plotMarker='o';
+                    faceColor=plotColor(imodel,:);
+                    if contains(nameModel,'bruteforce')==1
+                        faceColor=[1 1 1];
+                    end
                 end
                 timeFinal(isnan(uncenteredR))=[];
                 uncenteredR(isnan(uncenteredR))=[];
@@ -166,13 +171,9 @@ for imethodRef=1:2
                 h(imodel)=plot(timeFinal,uncenteredR,'marker',plotMarker,...
                     'color',[plotColor(imodel,:) plotLineTrans],...
                     'linestyle',plotLine{imodel},'linewidth',plotLineWidth,...
-                    'markerfacecolor',plotColor(imodel,:),'markersize',4);    
+                    'markerfacecolor',faceColor,'markersize',4);    
             end
         end
-%         text(1962,0.9,sprintf('%.1d-%.1dyr lead',leadStart,leadEnd),...
-%             'fontsize',10,'fontweight','bold','horizontalalignment','left');
-%         text(1962,0.7,sprintf('Ref Climo: %s',methodRef),...
-%             'fontsize',10,'fontweight','bold','horizontalalignment','left');
         if icounter==3
             legend(h,{'CESM1 FOSI','CESM1 bruteforce','E3SMv1 FOSI','E3SMv1 bruteforce'},...
                     'fontsize',8,'box','off','location','northwest')
@@ -180,7 +181,7 @@ for imethodRef=1:2
         set(gca,'ytick',-1:0.2:1,'xtick',1950:10:2030)
         set(gca,'fontsize',8);
         title(titleName,'fontsize',10);
-        axis([1970 2020 -0.7 1]);
+        axis([1970 2022 -0.7 1]);
     end
 end
 set(gcf,'renderer','painters')
