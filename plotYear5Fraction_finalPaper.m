@@ -16,6 +16,7 @@ subpos2=[.30 .82 .20 .14; .30 .65 .20 .14; .30 .48 .20 .14; .30 .31 .20 .14; .30
 subpos3=[.54 .82 .20 .14; .54 .65 .20 .14; .54 .48 .20 .14; .54 .31 .20 .14; .54 .27 .20 .14];  
 subpos4=[.78 .82 .20 .14; .78 .65 .20 .14; .78 .48 .20 .14; .78 .31 .20 .14; .78 .27 .20 .14];  
 subpos=cat(3,subpos1,subpos2,subpos3,subpos4);
+panelLetter={'a','e','i','b','f','j','c','g','k','d','h','l','m','n','o','p'};
 
 gradsmap=flip([103 0 31; 178 24 43; 214 96 77; 244 165 130; 253 219 199; ...
     209 229 240; 146 197 222; 67 147 195; 33 102 172; 5 48 97]/256);
@@ -61,7 +62,7 @@ for iyear=1:size(varMonthlyOBS,3)/12
 end
 
 
-
+iletter=0;
 figure;
 % -------------------------- FORECAST --------------------------
 modelTitle={'CESM1 Bruteforce','E3SMv1 Bruteforce','CESM1 FOSI','E3SMv1 FOSI'};
@@ -146,7 +147,14 @@ for imodel=1:4
         v=[8 62; 68 62; 68 85; 8 85];
         patch('Faces',f,'Vertices',v,'FaceColor','white')
         text(0.03,0.90,avg_out,'Units','normalized','fontsize',8,'fontweight','bold')
-    
+
+        iletter=iletter+1;
+        f=[1 2 3 4];
+        v=[300 60; 350 60; 350 85; 300 85];
+        patch('Faces',f,'Vertices',v,'FaceColor','white')
+        text(0.90,0.90,['(',panelLetter{iletter},')'],'Units','normalized',...
+            'fontsize',8,'fontweight','bold','HorizontalAlignment','center');
+
         set(gca,'fontsize',8);
         if imodel==1
             ylabel(typeTitle{itype},'fontweight','bold','fontsize',10);
@@ -195,10 +203,19 @@ for iloop=1:2
             set(gca,'ytick',-90:30:90,'yticklabel',{'90S' '60S' '30S' '0' '30N' '60N' '90N'});
             set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
             axis([0 360 -60 90]);
+
             f=[1 2 3 4];
             v=[8 62; 68 62; 68 85; 8 85];
             patch('Faces',f,'Vertices',v,'FaceColor','white');
             text(0.03,0.90,avg_out,'Units','normalized','fontsize',8,'fontweight','bold');
+
+            iletter=iletter+1;
+            f=[1 2 3 4];
+            v=[300 60; 350 60; 350 85; 300 85];
+            patch('Faces',f,'Vertices',v,'FaceColor','white')
+            text(0.90,0.90,['(',panelLetter{iletter},')'],'Units','normalized',...
+                'fontsize',8,'fontweight','bold','HorizontalAlignment','center');
+
             set(gca,'fontsize',8);
             if icounter==1
                 ylabel('year5/LE','fontweight','bold','fontsize',10);
