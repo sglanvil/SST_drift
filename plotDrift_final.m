@@ -93,7 +93,7 @@ for itime=1:size(raw,3)
         xNew,yNew,'linear',1)'; 
 end
 for iyear=1:size(varMonthlyOBS,3)/12
-    varYearlyOBS(:,:,iyear)=nanmean(varMonthlyOBS(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3);
+    varYearlyOBS(:,:,iyear)=mean(varMonthlyOBS(:,:,(iyear-1)*12+1:(iyear-1)*12+12),3,'omitnan');
 end
 
 
@@ -123,8 +123,8 @@ for imodel=1:4
                 xNew,yNew,'linear',1)'; 
         end
         for iyear=1:size(raw,3)/12
-            varYearly(:,:,iyear,init)=nanmean(varMonthly(:,:,...
-                (iyear-1)*12+1:(iyear-1)*12+12,init),3);
+            varYearly(:,:,iyear,init)=mean(varMonthly(:,:,...
+                (iyear-1)*12+1:(iyear-1)*12+12,init),3,'omitnan');
         end
     end
     
@@ -139,10 +139,10 @@ for imodel=1:4
     end
     
     % -------------------------- DIFFERENCE --------------------------    
-    diff_month1=nanmean(varMonthly(:,:,1,:),4)-nanmean(varMonthlyOBS(:,:,inx_month1),3);
-    diff_year1=nanmean(varYearly(:,:,1,:),4)-nanmean(varYearlyOBS(:,:,inx_year1),3);
-    diff_year3=nanmean(varYearly(:,:,3,:),4)-nanmean(varYearlyOBS(:,:,inx_year3),3);
-    diff_year5=nanmean(varYearly(:,:,5,:),4)-nanmean(varYearlyOBS(:,:,inx_year5),3);
+    diff_month1=mean(varMonthly(:,:,1,:),4,'omitnan')-mean(varMonthlyOBS(:,:,inx_month1),3,'omitnan');
+    diff_year1=mean(varYearly(:,:,1,:),4,'omitnan')-mean(varYearlyOBS(:,:,inx_year1),3,'omitnan');
+    diff_year3=mean(varYearly(:,:,3,:),4,'omitnan')-mean(varYearlyOBS(:,:,inx_year3),3,'omitnan');
+    diff_year5=mean(varYearly(:,:,5,:),4,'omitnan')-mean(varYearlyOBS(:,:,inx_year5),3,'omitnan');
 
     % -------------------------- PLOT --------------------------
     typeTitle={'month 1','year 1','year 3','year 5'};  
@@ -151,18 +151,25 @@ for imodel=1:4
         diff=eval(sprintf('diff_%s',type{itype}));
         diff_save{itype,imodel}=diff; % -------------------- SAVE
 
-        diff(land>0)=NaN;
+        diff(land>0.5)=NaN;
         diff(diff<-3)=-3;
-        diff_year5(land>0)=NaN;
+        diff_year5(land>0.5)=NaN;
         diff_year5(diff_year5<-3)=-3;
         
 %         diff=(diff./diff_year5)*100; % -------- Year5 Fraction? (yes or no)
-               
-        rmse=sqrt(nanmean((diff).^2,3));
-        diff_60Sto60N=(rmse(:,lat>-60 & lat<60));
+%         diff(diff<0)=0;
+%         diff(diff>100)=100;
+%         diffzm_global=squeeze(mean(diff,1,'omitnan'))';
+%         diff_global_cosine=squeeze(sum(diffzm_global.*cosd(lat),'omitnan')./...
+%             sum(cosd(lat),'omitnan')); 
+%         diff_avg=sprintf('%.1f',diff_global_cosine);
+        
+        rmse=sqrt(mean((diff).^2,3,'omitnan'));
+        diff_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
         lat_60Sto60N=lat(lat>-60 & lat<60);
-        diffzm_60Sto60N=squeeze(nanmean(diff_60Sto60N,1))';
-        diff_60Sto60N_cosine=squeeze(nansum(diffzm_60Sto60N.*cosd(lat_60Sto60N))./nansum(cosd(lat_60Sto60N))); 
+        diffzm_60Sto60N=squeeze(mean(diff_60Sto60N,1,'omitnan'))';
+        diff_60Sto60N_cosine=squeeze(sum(diffzm_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
+            sum(cosd(lat_60Sto60N),'omitnan')); 
         diff_avg=sprintf('%.2f',diff_60Sto60N_cosine);
         
         subplot('position',squeeze(subpos(itype,:,imodel)))
@@ -195,12 +202,12 @@ for imodel=1:4
 end
 sgtitle('Hindcast - Obs (inits = 1985,1990,1995,2000,2005,2010,2015,2016)');
 % sgtitle('Fraction of Year 5 Drift (Hindcast-Obs)');
-cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
-% cb=colorbar('location','southoutside','position',[0.25 0.24 0.5 0.02],'fontsize',10);
+colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
+% colorbar('location','southoutside','position',[0.25 0.24 0.5 0.02],'fontsize',10);
 set(gcf,'renderer','painters')
 % print(printName,'-r300','-dpng');
 
-save('diffOut_cesm1_e3sm.mat','diff_save','lon','lat','land','lonCoast','latCoast');
+% save('diffOut_cesm1_e3sm.mat','diff_save','lon','lat','land','lonCoast','latCoast');
 
 %% -------------------------- correlations for each model --------------------------
 % December 9, 2022
@@ -225,9 +232,11 @@ subpos2=[.30 .72 .20 .16; .30 .52 .20 .16; .30 .32 .20 .16; .30 .12 .20 .16];
 subpos3=[.54 .72 .20 .16; .54 .52 .20 .16; .54 .32 .20 .16; .54 .12 .20 .16];  
 subpos4=[.78 .72 .20 .16; .78 .52 .20 .16; .78 .32 .20 .16; .78 .12 .20 .16];  
 subpos=cat(3,subpos1,subpos2,subpos3,subpos4);
+panelLetter={'a','c','e','g','b','d','f','h'};
 
+iletter=0;
 load('diffOut_cesm1_e3sm.mat'); % see: plotDrift_final.m: diff_save{itype,imodel}
-modelTitle={'CESM1','E3SM'};
+modelTitle={'CESM1','E3SMv1'};
 for imodel=1:2
     typeTitle={'month 1','year 1','year 3','year 5'};  
     for itype=1:4
@@ -238,9 +247,18 @@ for imodel=1:2
         hold on; box on;
         rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
         pcolor(lon,lat,C'); shading flat;
+        colormap([1 .3 .3; .3 .3 1]); clim([-1 1]);
         plot(lonCoast,latCoast,'k','linewidth',1);
         set(gca,'ytick',-90:30:90,'yticklabel',{'90S' '60S' '30S' '0' '30N' '60N' '90N'});
         set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
+
+        iletter=iletter+1;
+        f=[1 2 3 4];
+        v=[300 60; 350 60; 350 85; 300 85];
+        patch('Faces',f,'Vertices',v,'FaceColor','white')
+        text(0.90,0.90,['(',panelLetter{iletter},')'],'Units','normalized',...
+            'fontsize',8,'fontweight','bold','HorizontalAlignment','center');
+
         axis([0 360 -60 90]);        
         set(gca,'fontsize',8);
         if imodel==1
@@ -251,10 +269,11 @@ for imodel=1:2
         end
     end
 end
-sgtitle('Bruteforce/FOSI Sign Test (Hindcast - Obs)');
-cb=colorbar('location','southoutside','position',[0.25 0.04 0.5 0.02],'fontsize',10);
+sgtitle('Bruteforce/FOSI Sign Agreement');
+cb=colorbar('location','southoutside','position',[0.3 0.06 0.44 0.02],'fontsize',10);
+set(cb,'ytick',-1:1,'yticklabel',{'opposite sign',' ','same sign'},'fontweight','bold');
 set(gcf,'renderer','painters')
-% print(printName,'-r300','-dpng');
+print(printName,'-r300','-dpng');
     
 %% -------------------------- OBSERVATIONS --------------------------
 % fil='/Users/sglanvil/Documents/CCR/hteng/data/air.2m.mon.mean.nc';
