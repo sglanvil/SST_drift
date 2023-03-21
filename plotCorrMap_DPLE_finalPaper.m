@@ -1,7 +1,8 @@
 % February 15, 2023
 clear; clc; close all;
 
-printName='corrMap_TS_DPLE_multipanel';
+printName='corrMap_TS_DPLE_multipanel_meehl';
+
 cd('/glade/work/sglanvil/CCR/SST_drift/matlab_files/')
 load('varYearlyOut_cesm1_fosi_full_TS_NEW.mat'); % ---------------- SPECIFY
 load('/glade/work/sglanvil/CCR/SST_drift/matlab_files/diffOut_diff.mat');
@@ -128,6 +129,11 @@ for imethodAnom=1:2
             v=[104 52; 136 52; 136 65; 104 65];
             patch('Faces',f,'Vertices',v,'FaceColor','white')
             text(0.03,0.90,ACC_out,'Units','normalized','fontsize',8,'fontweight','bold')
+
+            f=[1 2 3 4];
+            v=[248 52; 272 52; 272 65; 248 65];
+            patch('Faces',f,'Vertices',v,'FaceColor','white')
+            text(0.84,0.90,['(',panelLetter{icounter},')'],'Units','normalized','fontsize',8,'fontweight','bold')
 
             set(gca,'ytick',-80:20:80,'yticklabel',[]);
             set(gca,'xtick',0:30:360,'xticklabel',...
