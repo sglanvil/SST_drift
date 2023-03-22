@@ -119,7 +119,7 @@ varYearlyOBS(land_rep>0.5)=NaN; % THIS ACTUALLY MATTERS A TON
 
 
 % -------------------------- OBSERVATIONS hteng --------------------------
-fil='/Users/sglanvil/Documents/CCR/meehl/obs/air.2m.mon.mean.nc'; % updated Jan-2023
+fil='/glade/work/sglanvil/CCR/SST_drift/matlab_files/air.2m.mon.mean.nc'; % updated Jan-2023
 % fil='/glade/work/sglanvil/CCR/SST_drift/matlab_files/air.2m.mon.mean.nc';
 lon0=ncread(fil,'lon');
 lat0=ncread(fil,'lat');
@@ -152,3 +152,11 @@ save('/glade/work/sglanvil/CCR/SST_drift/matlab_files/varYearlyOut_cesm1_fosi_fu
     'varYearlyOBShteng','timeOBShteng',...
     'lon','lat',...
     'lead_FORECAST');
+
+fil='/glade/work/sglanvil/CCR/SST_drift/CESM1_FOSI_FULL/ts_cesm1_fosi_EM_ALL.nc';
+raw=ncread(fil,'TS');
+lon=ncread(fil,'lon');
+lat=ncread(fil,'lat');
+save('/glade/work/sglanvil/CCR/SST_drift/matlab_files/varMonthlyOut_cesm1_fosi_full_TS_2022.mat',...
+    'raw','lon','lat');
+
