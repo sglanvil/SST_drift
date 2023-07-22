@@ -11,9 +11,9 @@ leadStart=3;
 leadMid=4;
 leadEnd=5;
 
-printName=sprintf('corrTimeseries_TS_cesm1_e3sm_multipanel_%.1dto%.1dyr_allYears',leadStart,leadEnd);
+printName=sprintf('corrTimeseries_TS_cesm1_e3sm_multipanel_%.1dto%.1dyr_allYears_updated',leadStart,leadEnd);
 
-load('varYearlyOut_cesm1_e3sm_TS_2022.mat'); % --------- SPECIFY ---------
+load('varYearlyOut_cesm1_e3sm_TS_2022_allMembers.mat'); % --------- SPECIFY ---------
 gw=ncread('T42.gw.nc','gw');
 gw=repmat(gw',length(lon),1);
 
@@ -43,7 +43,7 @@ for imethodRef=1:2
         subplot(2,2,icounter)
         titleName=sprintf('(%s) Anom: %s, Ref Clim: %s',panelLetter{icounter},methodAnom,methodRef);
         hold on; box on; grid on;
-        plot([1960 2030],[0.53 0.53],'color',[.5 .5 .5],'linestyle','--');
+        plot([1960 2030],[0.5 0.5],'color',[.5 .5 .5],'linestyle','--');
         plot([1960 2030],[0 0],'k');
         volcYear=[1963 1974 1982 1991 2006 2011];
         volcName={'Agung' 'Fuego' 'El Chichon' 'Pinatubo' 'Tavurvur' 'Nabro'};
@@ -54,7 +54,7 @@ for imethodRef=1:2
         end
         % -------------------------- FORECAST --------------------------
         for imodel=1:4
-            for imember=1:4    
+            for imember=1:6  
                 varYearly=varYearly_FORECAST{imodel,imember};
                 timeModel=time_FORECAST{imodel,imember};
                 nameModel=name_FORECAST{imodel,imember};
@@ -156,7 +156,7 @@ for imethodRef=1:2
                 plotLineTrans=0.25;
                 plotMarker='none';
                 faceColor='none';
-                if imember==4 % ensemble mean
+                if imember==6 % ensemble mean
                     plotLineWidth=1.5;
                     plotLineTrans=1;
                     plotMarker='o';
@@ -179,7 +179,7 @@ for imethodRef=1:2
                     'fontsize',8,'box','off','location','northwest')
         end
         set(gca,'ytick',-1:0.2:1,'xtick',1950:10:2030)
-        set(gca,'fontsize',8);
+        set(gca,'fontsize',10);
         title(titleName,'fontsize',10);
         axis([1970 2022 -0.7 1]);
     end
