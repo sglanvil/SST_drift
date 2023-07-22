@@ -153,9 +153,9 @@ for imethodRef=1:2
                 'markerfacecolor',plotColor(imodel,:),'markersize',4);    
         end
         text(1972,0.9,[sprintf('%.2f',timeMeanR) ' \pm ' sprintf('%.2f',stddevR)],...
-            'fontsize',8,'fontweight','bold','horizontalalignment','left');
+            'fontsize',10,'fontweight','bold','horizontalalignment','left');
         set(gca,'ytick',-1:0.2:1,'xtick',1950:10:2030)
-        set(gca,'fontsize',8);
+        set(gca,'fontsize',10);
         title(titleName,'fontsize',10);
         axis([1970 2022 -0.7 1]);
     end
@@ -167,7 +167,7 @@ end
 
 
 % modelList={'cesm1_fosi','cesm1_bruteforce','e3sm_fosi','e3sm_bruteforce'};
-load('varYearlyOut_cesm1_e3sm_TS_2022.mat'); % --------- SPECIFY ---------
+load('varYearlyOut_cesm1_e3sm_TS_2022_allMembers.mat'); % --------- SPECIFY ---------
 
 icounter=-1;
 for imethodRef=1:2
@@ -181,7 +181,7 @@ for imethodRef=1:2
         subplot(2,2,icounter)
         hold on; box on; grid on;        
         for imodel=1:4
-            for imember=4 % just the EM  
+            for imember=6 % just the EM  
                 varYearly=varYearly_FORECAST{imodel,imember};
                 timeModel=time_FORECAST{imodel,imember};
                 nameModel=name_FORECAST{imodel,imember};
@@ -268,7 +268,7 @@ for imethodRef=1:2
                 plotLineTrans=0.25;
                 plotMarker='none';
                 faceColor='none';
-                if imember==4 % ensemble mean
+                if imember==6 % ensemble mean
                     plotLineWidth=1.5;
                     plotLineTrans=1;
                     plotMarker='o';
@@ -287,7 +287,7 @@ for imethodRef=1:2
             end
         end
         set(gca,'ytick',-1:0.2:1,'xtick',1950:10:2030)
-        set(gca,'fontsize',8);
+        set(gca,'fontsize',10);
         axis([1970 2022 -0.7 1]);
     end
 end
