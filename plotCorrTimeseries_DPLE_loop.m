@@ -11,7 +11,7 @@ cd('/glade/work/sglanvil/CCR/SST_drift/matlab_files/')
 % leadEnd=5;
 methodAnom='15yr';
 
-printName=sprintf('corrTimeseries_TS_DPLE_multipanel_%s_allYears_yeager',methodAnom);
+printName=sprintf('corrTimeseries_TS_DPLE_multipanel_%s_allYears_yeager_updated',methodAnom);
 
 load('varYearlyOut_cesm1_fosi_full_TS_2022.mat'); % --------- SPECIFY ---------
 gw=ncread('/glade/work/sglanvil/CCR/SST_drift/matlab_files/T42.gw.nc','gw');
@@ -43,7 +43,7 @@ for imethodRef=1:2
         subplot(2,2,icounter)
         titleName=sprintf('(%s) Lead: %.1d-%.1dyr, Ref Clim: %s',panelLetter{icounter},leadStart,leadEnd,methodRef);
         hold on; box on; grid on;
-        plot([1960 2030],[0.53 0.53],'color',[.5 .5 .5],'linestyle','--');
+        plot([1960 2030],[0.5 0.5],'color',[.5 .5 .5],'linestyle','--');
         plot([1960 2030],[0 0],'k');
         volcYear=[1963 1974 1982 1991 2006 2011];
         volcName={'Agung' 'Fuego' 'El Chichon' 'Pinatubo' 'Tavurvur' 'Nabro'};
