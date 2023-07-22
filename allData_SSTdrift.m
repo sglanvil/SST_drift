@@ -72,16 +72,21 @@ name_LE{2}='E3SMv1';
 
 % -------------------------- FORECAST --------------------------
 modelList={'cesm1_fosi','cesm1_bruteforce','e3sm_fosi','e3sm_bruteforce'};
-memberList={'001','002','003','EM'};
+memberList={'001','002','003','004','005','EM'};
 for imodel=1:4
-    for imember=1:4
-        fil=sprintf('/Users/sglanvil/Documents/CCR/meehl/data/SST_drift_data/ts_%s_%s_ALL.nc',...
+    for imember=1:6
+        fil=sprintf('/Users/sglanvil/Documents/CCR/meehl/data/SST_drift_data_allMembers/ts_%s_%s_ALL.nc',...
             modelList{imodel},memberList{imember});
         raw=ncread(fil,'TS');
 %         fil=sprintf('/Users/sglanvil/Documents/CCR/meehl/data/TREFHT/trefht_%s_%s_ALL.nc',...
 %             modelList{imodel},memberList{imember});
 %         raw=ncread(fil,'TREFHT');
-        raw=raw(:,:,3:60,1:9); % remove Nov and Dec
+        if imodel==3 || imodel==4 % E3SM is missing the last 5 inits in the last 2 members
+            if imember==4 || imember==5
+                raw(:,:,:,5:9)=NaN;
+            end
+        end
+        raw=raw(:,:,3:60,1:9); % remove Nov and Dec, don't use 2018
         raw(:,:,59:60,:)=NaN; % add on some NaN months to get regular years
         time=[1985 1990 1995 2000 2005 2010 2015 2016 2017]; % through 2016 raw(..,1:8) for yr3-5 (yr5=2021)
         lead=[1986 1987 1988 1989 1990; ...
@@ -173,7 +178,8 @@ varYearlyOBShteng(land_rep>0.5)=NaN; % THIS ACTUALLY MATTERS A TON
 % -------------------------- OBSERVATIONS hteng --------------------------
 
 
-save('varYearlyOut_cesm1_e3sm_TS_2022',... % TREFHT or TS?
+
+save('varYearlyOut_cesm1_e3sm_TS_2022_allMembers',... % TREFHT or TS?
     'varYearlyCLIM_LE','timeCLIM_LE','name_LE',...
     'varYearly_FORECAST','time_FORECAST','name_FORECAST',...
     'varYearlyOBS','timeOBS','lon','lat',...
