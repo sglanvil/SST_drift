@@ -3,7 +3,7 @@
 clear; clc; close all;
 
 % -------------------------- SPECIFY  --------------------------
-printName='/glade/work/sglanvil/CCR/SST_drift/matlab_files/drift_highRes_update1';
+printName='/glade/work/sglanvil/CCR/SST_drift/matlab_files/drift_highRes_update2';
 
 % -------------------------- GENERAL SETUP --------------------------
 gradsmap=flip([103 0 31; 178 24 43; 214 96 77; 244 165 130; 253 219 199; ...
@@ -206,6 +206,15 @@ for imodel=1:2
         diff(diff<-3)=-3;
         diff(diff>3)=3;
 
+        % Global avg of anomalies (map)
+        diff_90Sto90N=(diff(:,lat>-90 & lat<90)); 
+        lat_90Sto90N=lat(lat>-90 & lat<90);
+        avgZM_90Sto90N=squeeze(mean(diff_90Sto90N,1,'omitnan'))';
+        avgCOS_90Sto69N_cosine=squeeze(sum(avgZM_90Sto90N.*cosd(lat_90Sto90N),'omitnan')./...
+            sum(cosd(lat_90Sto90N),'omitnan')); 
+        disp(modelName+" "+type{itype}+" "+avgCOS_90Sto69N_cosine)
+        diff=(diff-avgCOS_90Sto69N_cosine);
+
         % RMSE 60S-60N
         rmse=sqrt(mean((diff).^2,3,'omitnan'));
         rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
@@ -214,14 +223,6 @@ for imodel=1:2
         rmseCOS_60Sto60N_cosine=squeeze(sum(rmseZM_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
             sum(cosd(lat_60Sto60N),'omitnan')); 
         rmse_out=sprintf('%.2f',rmseCOS_60Sto60N_cosine);
-
-        % Global avg of anomalies (map)
-        diff_90Sto90N=(diff(:,lat>-90 & lat<90)); 
-        lat_90Sto90N=lat(lat>-90 & lat<90);
-        avgZM_90Sto90N=squeeze(mean(diff_90Sto90N,1,'omitnan'))';
-        avgCOS_90Sto69N_cosine=squeeze(sum(avgZM_90Sto90N.*cosd(lat_90Sto90N),'omitnan')./...
-            sum(cosd(lat_90Sto90N),'omitnan')); 
-        disp(modelName+" "+type{itype}+" "+avgCOS_90Sto69N_cosine)
         
         subplot('position',subpos(itype,:))
         hold on; box on;
@@ -264,14 +265,6 @@ diff=mean(varYearly_E3SMhist(:,:,:),3,'omitnan')-...
 diff(land>0.5)=NaN;
 diff(diff<-3)=-3;
 diff(diff>3)=3;
-% RMSE 60S-60N
-rmse=sqrt(mean((diff).^2,3,'omitnan'));
-rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
-lat_60Sto60N=lat(lat>-60 & lat<60);
-rmseZM_60Sto60N=squeeze(mean(rmse_60Sto60N,1,'omitnan'))';
-rmseCOS_60Sto60N_cosine=squeeze(sum(rmseZM_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
-    sum(cosd(lat_60Sto60N),'omitnan')); 
-rmse_E3SMhist=sprintf('%.2f',rmseCOS_60Sto60N_cosine);
 % Global avg of anomalies (map)
 diff_90Sto90N=(diff(:,lat>-90 & lat<90)); 
 lat_90Sto90N=lat(lat>-90 & lat<90);
@@ -281,6 +274,15 @@ avgCOS_90Sto69N_cosine=squeeze(sum(avgZM_90Sto90N.*cosd(lat_90Sto90N),'omitnan')
 disp(" ")
 disp("E3SM Hist "+avgCOS_90Sto69N_cosine)
 disp(" ")
+diff=(diff-avgCOS_90Sto69N_cosine);
+% RMSE 60S-60N
+rmse=sqrt(mean((diff).^2,3,'omitnan'));
+rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
+lat_60Sto60N=lat(lat>-60 & lat<60);
+rmseZM_60Sto60N=squeeze(mean(rmse_60Sto60N,1,'omitnan'))';
+rmseCOS_60Sto60N_cosine=squeeze(sum(rmseZM_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
+    sum(cosd(lat_60Sto60N),'omitnan')); 
+rmse_E3SMhist=sprintf('%.2f',rmseCOS_60Sto60N_cosine);
 subplot('position',[.20 .15 .30 .15])
     hold on; box on;
     rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
@@ -290,19 +292,16 @@ subplot('position',[.20 .15 .30 .15])
     set(gca,'ytick',-90:30:90,'yticklabel',{'90S' '60S' '30S' '0' '30N' '60N' '90N'});
     set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
     axis([0 360 -60 90]);
-
     f=[1 2 3 4];
     v=[8 62; 50 62; 50 85; 8 85];
     patch('Faces',f,'Vertices',v,'FaceColor','white');
     text(0.03,0.90,rmse_E3SMhist,'Units','normalized','fontsize',8,'fontweight','bold');
-
     iletter=iletter+1;
     f=[1 2 3 4];
     v=[325 60; 350 60; 350 85; 325 85];
     patch('Faces',f,'Vertices',v,'FaceColor','white')
     text(0.94,0.90,['(',panelLetter{iletter},')'],'Units','normalized',...
         'fontsize',8,'fontweight','bold','HorizontalAlignment','center');
-
     ylabel('LE error','fontweight','bold','fontsize',10);
     title('E3SM-HR Historical')
     set(gca,'fontsize',12);
@@ -315,14 +314,6 @@ diff=mean(varYearly_CESMhist(:,:,:),3,'omitnan')-...
 diff(land>0.5)=NaN;
 diff(diff<-3)=-3;
 diff(diff>3)=3;
-% RMSE 60S-60N
-rmse=sqrt(mean((diff).^2,3,'omitnan'));
-rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
-lat_60Sto60N=lat(lat>-60 & lat<60);
-rmseZM_60Sto60N=squeeze(mean(rmse_60Sto60N,1,'omitnan'))';
-rmseCOS_60Sto60N_cosine=squeeze(sum(rmseZM_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
-    sum(cosd(lat_60Sto60N),'omitnan')); 
-rmse_CESMhist=sprintf('%.2f',rmseCOS_60Sto60N_cosine);
 % Global avg of anomalies (map)
 diff_90Sto90N=(diff(:,lat>-90 & lat<90)); 
 lat_90Sto90N=lat(lat>-90 & lat<90);
@@ -332,6 +323,15 @@ avgCOS_90Sto69N_cosine=squeeze(sum(avgZM_90Sto90N.*cosd(lat_90Sto90N),'omitnan')
 disp(" ")
 disp("CESM Hist "+avgCOS_90Sto69N_cosine)
 disp(" ")
+diff=(diff-avgCOS_90Sto69N_cosine);
+% RMSE 60S-60N
+rmse=sqrt(mean((diff).^2,3,'omitnan'));
+rmse_60Sto60N=(rmse(:,lat>-60 & lat<60)); 
+lat_60Sto60N=lat(lat>-60 & lat<60);
+rmseZM_60Sto60N=squeeze(mean(rmse_60Sto60N,1,'omitnan'))';
+rmseCOS_60Sto60N_cosine=squeeze(sum(rmseZM_60Sto60N.*cosd(lat_60Sto60N),'omitnan')./...
+    sum(cosd(lat_60Sto60N),'omitnan')); 
+rmse_CESMhist=sprintf('%.2f',rmseCOS_60Sto60N_cosine);
 subplot('position',[.55 .15 .30 .15])
     hold on; box on;
     rectangle('Position',[0 -90 360 180],'FaceColor',[.8 .8 .8])
@@ -341,19 +341,16 @@ subplot('position',[.55 .15 .30 .15])
     set(gca,'ytick',-90:30:90,'yticklabel',[]);
     set(gca,'xtick',0:90:360,'xticklabel',{'0' '90E' '180' '90W' '0'});
     axis([0 360 -60 90]);
-
     f=[1 2 3 4];
     v=[8 62; 50 62; 50 85; 8 85];
     patch('Faces',f,'Vertices',v,'FaceColor','white');
     text(0.03,0.90,rmse_CESMhist,'Units','normalized','fontsize',8,'fontweight','bold');
-
     iletter=iletter+1;
     f=[1 2 3 4];
     v=[325 60; 350 60; 350 85; 325 85];
     patch('Faces',f,'Vertices',v,'FaceColor','white')
     text(0.94,0.90,['(',panelLetter{iletter},')'],'Units','normalized',...
         'fontsize',8,'fontweight','bold','HorizontalAlignment','center');
-
     ylabel('LE error','fontweight','bold','fontsize',10);
     title('CESM-HR Historical')
     set(gca,'fontsize',12);
